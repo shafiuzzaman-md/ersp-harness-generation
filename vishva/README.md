@@ -32,7 +32,7 @@ Expected error: KLEE: ERROR: .../instrumented_cwe121.c:27: memory error: out of 
 ```
 ----------------------------------------------------------------------------------------------------------------------------------------
 
-# CWE122: Heap-Based Buffer Overflow
+## CWE122: Heap-Based Buffer Overflow
 This harness finds a hard-coded bug where memmove is called with an incorrect sizeof value, causing it to write data past the end of an allocated heap buffer.
 
 Source Code: driver_cwe122.c, instrumented_cwe122.c
@@ -42,6 +42,8 @@ Harness Method: This case was more complex.
 The instrumented_cwe122.c file was modified to remove all printLine calls.
 
 The driver_cwe122.c file defines main() and includes the instrumented file.
+
+```bash
 
 clang-13 -emit-llvm -c -g -O0 \
   -I ../../../ \
