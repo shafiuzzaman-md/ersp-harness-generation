@@ -29,7 +29,7 @@ Run KLEE: klee harness.bc
 
 Expected error: KLEE: ERROR: .../instrumented_cwe121.c:27: memory error: out of bound pointer
 
-bash```
+```
 ----------------------------------------------------------------------------------------------------------------------------------------
 
 # CWE122: Heap-Based Buffer Overflow
