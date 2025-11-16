@@ -12,9 +12,7 @@ We just need a main() function to call _bad().*/
 // Our new main function that KLEE will run
 int main(int argc, char *argv[]) {
 
-    int dummy;
-    klee_make_symbolic(&dummy,sizeof(dummy),"dummy");
-    klee_assume(dummy > 0);
+   
 
     //printLine("Calling bad()...");
 
