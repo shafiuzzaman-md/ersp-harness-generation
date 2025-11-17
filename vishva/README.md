@@ -52,6 +52,8 @@ clang-13 -emit-llvm -c -g -O0 \
   -o harness.bc \
   -target x86_64-unknown-linux-gnu
 
+  ```
+
 Problem: KLEE does not find the error, my guess is because it might be fixing the error on its own?
 
 I asked an LLM to help me and it gave me commands to fix this:
@@ -60,8 +62,10 @@ I asked an LLM to help me and it gave me commands to fix this:
 --libc=none: Stops KLEE from linking its own safe C library, which would "fix" the buggy memmove.
 --disable-opt: Stops KLEE's internal optimizer from replacing the memmove call before analysis even begins.
 
-DID NOT WORK!
 
-Error Explained if it worked:
-KLEE: ERROR: .../instrumented_cwe122.c:XX: memory error: out of bound pointer
+Fix: (Help of Shafi)
+
+ klee_assume(structCharVoid != NULL);
+ klee_assert(sizeof(*structCharVoid) <= sizeof(structCharVoid->charFirst));
+
 This error means KLEE executed the hard-coded path and saw the memmove function attempt to write data outside the bounds of the malloc'd heap buffer, which is a critical heap-based buffer overflow.
