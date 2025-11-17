@@ -68,4 +68,6 @@ Fix: (Help of Shafi)
  klee_assume(structCharVoid != NULL);
  klee_assert(sizeof(*structCharVoid) <= sizeof(structCharVoid->charFirst));
 
+Then Run KLEE and you get an ASSERTION.err
+
 This error means KLEE executed the hard-coded path and saw the memmove function attempt to write data outside the bounds of the malloc'd heap buffer, which is a critical heap-based buffer overflow.
