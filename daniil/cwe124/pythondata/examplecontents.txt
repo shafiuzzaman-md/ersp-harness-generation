@@ -1,0 +1,124 @@
+/home/daniil/juliet/juliet-test-suite-c/testcases/CWE124_Buffer_Underwrite/s01/example/driver.c
+// driver.c
+#include "klee/klee.h"
+
+// Provide the symbolic source used by the instrumented bad function
+int __klee_source(void) {
+    int data;
+    klee_make_symbolic(&data, sizeof(data), "data");
+    // Optional bounds to speed up search; remove if you want unbounded
+    klee_assume(data >= -100 && data <= 100);
+    return data;
+}
+
+// Declaration of the instrumented Juliet bad function (same name)
+void CWE121_Stack_Based_Buffer_Overflow__CWE129_connect_socket_01_bad(void);
+
+int main(void) {
+    CWE121_Stack_Based_Buffer_Overflow__CWE129_connect_socket_01_bad();
+    return 0;
+}
+
+/home/daniil/juliet/juliet-test-suite-c/testcases/CWE124_Buffer_Underwrite/s01/example/driver_CWE121_Stack_Based_Buffer_Overflow__CWE129_connect_socket_01_bad.c
+// driver_CWE121_Stack_Based_Buffer_Overflow__CWE129_connect_socket_01_bad.c
+#include "klee/klee.h"
+
+/* Provide the symbolic source used by the instrumented bad function */
+int __klee_source(void) {
+    int data;
+    klee_make_symbolic(&data, sizeof(data), "data");
+    return data;
+}
+
+/* Pull in the instrumented implementation (same directory or adjust the path) */
+#include "instrumented_CWE121_Stack_Based_Buffer_Overflow__CWE129_connect_socket_01_bad.c"
+
+/* Exact Juliet function name is preserved in the included file */
+int main(void) {
+    CWE121_Stack_Based_Buffer_Overflow__CWE129_connect_socket_01_bad();
+    return 0;
+}
+
+/home/daniil/juliet/juliet-test-suite-c/testcases/CWE124_Buffer_Underwrite/s01/example/instrumented_CWE121_Stack_Based_Buffer_Overflow__CWE129_connect_socket_01_bad.c
+// instrumented_CWE121_Stack_Based_Buffer_Overflow__CWE129_connect_socket_01_bad.c
+#include <stddef.h>
+
+int __klee_source(void);  // defined by the driver
+
+void CWE121_Stack_Based_Buffer_Overflow__CWE129_connect_socket_01_bad(void) {
+    int data = __klee_source();     // model the socket-provided int
+
+    int i;
+    int buffer[10] = {0};
+
+    // Bad sink: checks only lower bound; missing upper bound check
+    if (data >= 0) {
+        buffer[data] = 1;           // KLEE will flag OOB when data >= 10
+        for (i = 0; i < 10; i++) {
+            (void)buffer[i];        // keep side effects
+        }
+    }
+}
+
+
+/home/daniil/juliet/juliet-test-suite-c/testcases/CWE124_Buffer_Underwrite/s01/example/README.md
+# KLEE Harness
+We divide harness generation into two parts:
+- Driver: makes inputs symbolic and calls the target entrypoint.
+- Instrumented file: preserves the exact vulnerable function but replaces real I/O with a stubbed source; focuses only on the sink (hotspot) logic. 
+
+In this example:
+- The driver defines __klee_source() via klee_make_symbolic, then #includes the instrumented file and calls the original function name (our symbolic-execution entrypoint).
+- The instrumented file targets just the sink logic, stubbing out non-interesting parts so exploration is small and fast.
+
+
+## Build and run
+### Compile just the driver (it includes the instrumented file)
+clang -emit-llvm -c -g -O0 \
+      driver_CWE121_Stack_Based_Buffer_Overflow__CWE129_connect_socket_01_bad.c \
+      -o harness.bc
+
+### Run KLEE
+klee harness.bc
+
+
+## Example KLEE output
+
+KLEE: ERROR: ./instrumented_CWE121_Stack_Based_Buffer_Overflow__CWE129_connect_socket_01_bad.c:14: memory error: out of bound pointer
+KLEE: NOTE: now ignoring this error at this location
+
+KLEE: done: total instructions = 657
+KLEE: done: completed paths = 2
+KLEE: done: partially completed paths = 1
+KLEE: done: generated tests = 3
+
+This means: KLEE found a concrete input that drives the program to an out-of-bounds write at the sink line in the instrumented file. It explored a few paths and produced concrete test cases.
+
+## Inspecting the failing test case 
+KLEE writes .ktest files under klee-last/. Use ktest-tool to view inputs:
+    ktest-tool klee-last/test000002.ktest
+
+object 0: name: 'data'
+object 0: size: 4
+object 0: data: b'\n\x00\x00\x00'
+object 0: hex : 0x0a000000
+object 0: int : 10
+object 0: uint: 10
+object 0: text: ....
+
+That shows the symbolic variable data is 10 (0x0a), which triggers the OOB write.
+
+You’ll see a .kquery describing the constraints:
+
+array data[4] : w32 -> w8 = symbolic
+(query [(Sle 0
+              N0:(ReadLSB w32 0 data))
+         (Eq false
+             (Ult (Mul w64 4 (SExt w64 N0))
+                  37))]
+        false)
+
+Interpretation:
+- data is a 32-bit symbolic input
+- Constraints include data >= 0 (Sle 0 N0) and a condition ensuring the write goes out of bounds
+- Solver returns a model (e.g., data = 10) satisfying these
