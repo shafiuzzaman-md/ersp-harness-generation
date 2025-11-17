@@ -1,41 +1,52 @@
-LLM-Harnesses Generated For KLEE Symbolic Execution Test Cases
+# LLM-Generated KLEE Harnesses for Symbolic Execution
 
-This project contains instrumented test cases for two common vulnerability types: Integer Overflow (CWE-190) and Divide by Zero (CWE-369). Each test case has a corresponding driver and instrumentation file to run with KLEE.
+This repository contains a set of instrumented test cases and drivers for exploring two vulnerability classes using KLEE symbolic execution: **Integer Overflow (CWE-190)** and **Divide-By-Zero (CWE-369)**.
 
-Test Cases
-Integer Overflow (CWE-190)
+Each test includes:
 
-CWE190_Integer_Overflow__int_rand_add_45_bad.c
+- a driver file that provides symbolic input to KLEE, and  
+- an instrumented Juliet test case where `klee_assume` and `klee_assert` encode the safety property we want KLEE to violate.
 
-Vulnerability: Adding 1 to a random int may overflow.
+---
 
-CWE190_Integer_Overflow__char_fscanf_add_12.c
+## Included Test Cases
 
-Vulnerability: Adding 1 to a char value read from the console may overflow.
+### **Integer Overflow — CWE-190**
 
-Divide by Zero (CWE-369)
+#### 1. `CWE190_Integer_Overflow__int_rand_add_45_bad.c`
+**Vulnerability:** A random integer is incremented by 1. If the initial value is `INT_MAX`, the addition overflows.
 
-CWE369_Divide_by_Zero__float_connect_socket_21_bad.c
+#### 2. `CWE190_Integer_Overflow__char_fscanf_add_12.c`
+**Vulnerability:** A char read from stdin is incremented. If it's at `CHAR_MAX`, adding 1 wraps around.
 
-Vulnerability: Division by a float value read from a socket may be zero.
+---
 
-CWE369_Divide_by_Zero__int_fscanf_modulo_01_bad.c
+### **Divide By Zero — CWE-369**
 
-Vulnerability: Modulo operation with an int read from console may be zero.
+#### 3. `CWE369_Divide_by_Zero__float_connect_socket_21_bad.c`
+**Vulnerability:** A float is read from a simulated socket. If the value is zero or near-zero, `100.0 / data` becomes unsafe.
 
-Building and Running
+#### 4. `CWE369_Divide_by_Zero__int_fscanf_modulo_01_bad.c`
+**Vulnerability:** An integer from stdin is used as a divisor in a modulo operation. If it's zero, the modulo crashes.
 
-Compile with Clang/LLVM
-Make sure you have KLEE installed and its include path available. Example:
+---
 
-clang -I /usr/lib/klee/include -emit-llvm -c -g -O0 driver_<testcase>.c -o harness.bc
+## How to Build and Run
 
+### 1. Compile to LLVM bitcode
 
-Replace <testcase> with the name of your driver file.
+```bash
+clang -I /usr/lib/klee/include -emit-llvm -c -g -O0 driver_<test>.c -o harness.bc
+```
 
-Run with KLEE
+**Example build command:**
 
+Replace <test> with the appropriate driver filename (e.g., driver_CWE190_Integer_Overflow__int_rand_add_45_bad.c).
+
+### 2. Run with KLEE
+
+```bash
 klee harness.bc
+```
 
 
-KLEE will explore symbolic inputs and generate .ktest files for inputs that trigger assertion failures.
