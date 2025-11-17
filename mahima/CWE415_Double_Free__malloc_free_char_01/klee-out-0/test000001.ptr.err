@@ -1,0 +1,12 @@
+Error: memory error: double free
+File: ./instrumented_CWE415_s01_bad.c
+Line: 27
+assembly.ll line: 24
+State: 1
+Stack: 
+	#000000024 in CWE415_Double_Free__malloc_free_char_01_bad() at ./instrumented_CWE415_s01_bad.c:27
+	#100000044 in main() at driver_CWE415_s01_bad.c:9
+Info: 
+	address: 136689502650368
+	next: object at 136118272000000 of size 4
+		MO12[4] allocated at main():  %1 = alloca i32, align 4

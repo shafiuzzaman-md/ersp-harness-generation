@@ -1,0 +1,12 @@
+Error: memory error: double free
+File: ./instrumented_CWE415_s02_bad.cpp
+Line: 26
+assembly.ll line: 32
+State: 1
+Stack: 
+	#000000032 in _Z50CWE415_Double_Free__new_delete_array_struct_01_badv() at ./instrumented_CWE415_s02_bad.cpp:26
+	#100000052 in main() at driver_CWE415_s02_bad.cpp:9
+Info: 
+	address: 126383086895104
+	next: object at 125743136768000 of size 4
+		MO12[4] allocated at main():  %1 = alloca i32, align 4

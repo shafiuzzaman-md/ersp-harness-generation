@@ -1,0 +1,1 @@
+KLEE: WARNING ONCE: Alignment of memory from call "_Znam" is not modelled. Using alignment of 8.

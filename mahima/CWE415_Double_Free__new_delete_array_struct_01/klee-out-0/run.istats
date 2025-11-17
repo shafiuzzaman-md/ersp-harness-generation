@@ -1,0 +1,53 @@
+version: 1
+creator: klee
+pid: 40010
+cmd: harness_415_s02.bc
+
+
+positions: instr line
+event: Icov : CoveredInstructions
+event: Forks : Forks
+event: Ireal : InstructionRealTimes
+event: Itime : InstructionTimes
+event: I : Instructions
+event: UCdist : MinDistToUncovered
+event: Rtime : ResolveTime
+event: States : States
+event: Iuncov : UncoveredInstructions
+event: Q : Queries
+event: Qiv : QueriesInvalid
+event: Qv : QueriesValid
+event: Qtime : QueryTime
+events: Icov Forks Ireal Itime I UCdist Rtime States Iuncov Q Qiv Qv Qtime 
+ob=assembly.ll
+fl=./instrumented_CWE415_s02_bad.cpp
+fn=_Z50CWE415_Double_Free__new_delete_array_struct_01_badv
+10 13 1 0 0 0 1 15 0 0 0 0 0 0 0 
+11 14 1 0 0 0 1 14 0 0 0 0 0 0 0 
+12 17 1 0 0 0 1 12 0 0 0 1 0 0 0 
+13 20 1 0 0 0 1 11 0 0 0 0 0 0 0 
+14 20 1 0 0 0 1 9 0 0 0 0 0 0 0 
+15 20 1 0 0 0 1 8 0 0 0 1 0 0 0 
+16 23 1 0 0 0 1 7 0 0 0 1 0 0 0 
+17 23 1 0 0 0 1 6 0 0 0 0 0 0 0 
+18 23 1 0 0 0 1 5 0 0 0 1 0 0 0 
+21 23 1 0 0 0 1 8 0 0 0 0 0 0 0 
+22 23 1 0 0 0 1 7 0 0 0 2 0 0 0 
+23 23 1 0 0 0 1 5 0 0 0 0 0 0 0 
+26 26 1 0 0 0 1 4 0 0 0 1 0 0 0 
+27 26 1 0 0 0 1 3 0 0 0 0 0 0 0 
+28 26 1 0 0 0 1 2 0 0 0 1 0 0 0 
+31 26 1 0 0 0 1 4 0 0 0 0 0 0 0 
+32 26 1 0 0 0 1 3 0 0 0 2 0 0 0 
+33 26 0 0 0 0 0 1 0 0 1 0 0 0 0 
+36 27 0 0 0 0 0 1 0 0 1 0 0 0 0 
+fl=driver_CWE415_s02_bad.cpp
+fn=main
+50 8 1 0 0 0 1 19 0 0 0 0 0 0 0 
+51 8 1 0 0 0 1 18 0 0 0 1 0 0 0 
+52 9 1 0 0 0 1 17 0 0 0 0 0 0 0 
+cfl=./instrumented_CWE415_s02_bad.cpp
+cfn=_Z50CWE415_Double_Free__new_delete_array_struct_01_badv
+calls=1 8 13
+52 9 17 0 0 0 17 0 0 0 0 10 0 0 0 
+53 10 0 0 0 0 0 1 0 0 1 0 0 0 0 

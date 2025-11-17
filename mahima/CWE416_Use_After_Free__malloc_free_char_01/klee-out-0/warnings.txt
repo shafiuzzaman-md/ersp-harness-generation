@@ -1,0 +1,3 @@
+KLEE: WARNING: undefined reference to function: strcpy
+KLEE: WARNING ONCE: Alignment of memory from call "malloc" is not modelled. Using alignment of 8.
+KLEE: WARNING ONCE: calling external: strcpy(123748560666624, 124405153792000) at ./instrumented_CWE416_s01_bad.c:34 10

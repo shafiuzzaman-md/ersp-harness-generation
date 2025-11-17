@@ -1,0 +1,13 @@
+Error: memory error: use after free
+File: ./instrumented_CWE416_s02_bad.c
+Line: 14
+assembly.ll line: 64
+State: 1
+Stack: 
+	#000000064 in printLine(128290620702720) at ./instrumented_CWE416_s02_bad.c:14
+	#100000028 in CWE416_Use_After_Free__malloc_free_char_02_bad() at ./instrumented_CWE416_s02_bad.c:38
+	#200000077 in main() at driver_CWE416_s02_bad.c:6
+Info: 
+	address: 128290620702720
+	next: object at 127710800117760 of size 1
+		MO28[1] allocated at printLine():  %3 = alloca i8, align 1
