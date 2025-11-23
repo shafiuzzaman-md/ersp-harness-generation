@@ -23,3 +23,8 @@ https://github.com/arichardson/juliet-test-suite-c/blob/master/testcases/CWE416_
 
 The instrumented file should contain only the bad() function (CWE416_Use_After_Free__malloc_free_char_02_bad), plus any minimal type definitions and includes needed, with no good() functions or main(). Replace printLine with a stub that dereferences the pointer so that KLEE can detect the use-after-free. The driver file should define main(), include the instrumented file, and call the bad() function once."
 
+LLM Prompt:
+"Create an instrumental file and driver file for this Juliet test case:
+https://github.com/arichardson/juliet-test-suite-c/blob/master/testcases/CWE416_Use_After_Free/CWE416_Use_After_Free__malloc_free_char_02.c
+
+The instrumented file should contain only the bad() function (CWE416_Use_After_Free__malloc_free_char_02_bad), plus any minimal type definitions and includes needed, with no good() functions or main(). The driver file should define main(), include the instrumented file, and call the bad() function once."
