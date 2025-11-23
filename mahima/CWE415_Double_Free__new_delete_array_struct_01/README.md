@@ -22,10 +22,4 @@ https://github.com/arichardson/juliet-test-suite-c/blob/master/testcases/CWE415_
 
 The instrumented file should contain only the bad() function (CWE415_Double_Free__new_delete_array_struct_01_bad), plus any minimal type definitions and includes needed, with no good() functions or main(). The driver file should define main(), include the instrumented file, and call the bad() function once."
 
-LLM Prompt:
-"Create an instrumental file and driver file for this Juliet test case:
-https://github.com/arichardson/juliet-test-suite-c/blob/master/testcases/CWE415_Double_Free/s02/CWE415_Double_Free__new_delete_array_struct_01.cpp
-
-The instrumented file should contain only the bad() function (CWE415_Double_Free__new_delete_array_struct_01_bad), plus any minimal type definitions and includes needed, with no good() functions or main(). The driver file should define main(), include the instrumented file, and call the bad() function once."
-
 
