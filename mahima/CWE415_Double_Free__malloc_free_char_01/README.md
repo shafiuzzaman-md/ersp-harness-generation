@@ -26,5 +26,6 @@ LLM Prompt:
 "Create an instrumental file and driver file for this Juliet test case:
 https://github.com/arichardson/juliet-test-suite-c/blob/master/testcases/CWE415_Double_Free/s01/CWE415_Double_Free__malloc_free_char_01.c
 
-The instrumented file should contain only the bad() function (CWE415_Double_Free__malloc_free_char_01_bad), plus any minimal includes needed, and no good() functions or main(). The driver file should define main(), include the instrumented file, and call the bad() function once."
+The instrumented file should contain only the bad() function (CWE415_Double_Free__malloc_free_char_01_bad), plus any minimal includes needed,
+and no good() functions or main(). The driver file should define main(), include the instrumented file, and call the bad() function once."
 
