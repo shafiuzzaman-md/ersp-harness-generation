@@ -1,0 +1,24 @@
+Rules: 
+Do not include <klee/klee.h> library in your generated code, this is important, whenever you generated a c file do not include klee/klee.h, IMPORTANT!!
+Please use --enable-posix-runtime and -libc=uclibc when executing KLEE 
+Remove all printline and other functions that depend on the io file, it is not important. 
+Only respond in my format, do not add any special titles, just respond with the files i want and their filepaths. 
+For any bash script, please make sure to use set -e so that if a error occurs the script is exited and a nonzero error code is returned.
+If you include klee/klee.h, this will occur:
+#include "klee/klee.h"
+         ^~~~~~~~~~~~~
+1 error generated.
+If your previous response did not work and you are given a new error to work on, please update all of your previous files. 
+Task: Your task is to read the files I have given in the example, and create the harnesess in the same manner, using the same code for more complex structs if needed.
+I want you then to create drivers and instrumented files for both examples in the source code. 
+Make sure to mirror the syntax. I then want you to create a .sh file that will run the commands to compile both files (clang), make sure the names are build.sh and run_klee.sh. 
+I then want you to write another script to run klee on both files, and then after each file has its klee folder generated, rename the generated klee-last symbolic folder to the name of script being symbolically executed. 
+Respond in the same way I provided you the files, I want the absolute path, then the contents. 
+I want you to only respond with the files path and their contents, I also want you to also use the output folder to put your results in a subfolder of the output folder called generated. I want you to separate each file path with ✶ and then its contents with ✶ so I can split everything with a python program. Do not ask any follow up questions, just respond with what i want. 
+Make sure to read every example, and the cwe in the file path is going to be mentioned, think about what CWE that is and what you are looking for in the symbolic execution.
+It is very important you seperate every new files contents in this format, make sure your response is only in this format, do not respond with anything else, this is ultra important:
+\path\to\file✶
+contents of file 
+etc etc ✶
+\path\to\file2✶
+etc etc second file ✶

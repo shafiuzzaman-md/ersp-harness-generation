@@ -1,0 +1,101 @@
+./cwes/cwe124/output/generated/instrumented_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.c✶
+#include <stddef.h>
+#include <string.h>
+
+extern int __klee_source(void);
+
+void CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad()
+{
+    char * data;
+    char * dataBuffer = (char *)__builtin_alloca(100*sizeof(char));
+    memset(dataBuffer, 'A', 100-1);
+    dataBuffer[100-1] = '\0';
+    if(5==5)
+    {
+        /* FLAW: Set data pointer to before the allocated memory buffer */
+        data = dataBuffer - 8;
+    }
+    {
+        char source[100];
+        memset(source, 'C', 100-1);
+        source[100-1] = '\0';
+        /* POTENTIAL FLAW: Possibly copying data to memory before the destination buffer */
+        strncpy(data, source, 100-1);
+        /* Ensure the destination buffer is null terminated */
+        data[100-1] = '\0';
+    }
+}
+✶
+./cwes/cwe124/output/generated/driver_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.c✶
+#include <klee/klee.h>
+
+extern void CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad(void);
+
+int __klee_source(void) {
+    int x;
+    klee_make_symbolic(&x, sizeof(x), "x");
+    return x;
+}
+
+int main(void) {
+    CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad();
+    return 0;
+}
+✶
+./cwes/cwe124/output/generated/instrumented_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.c✶
+#include <stddef.h>
+#include <string.h>
+
+extern int __klee_source(void);
+
+void CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad()
+{
+    char * data;
+    char * dataBuffer = (char *)__builtin_alloca(100*sizeof(char));
+    memset(dataBuffer, 'A', 100-1);
+    dataBuffer[100-1] = '\0';
+    /* FLAW: Set data pointer to before the allocated memory buffer */
+    data = dataBuffer - 8;
+    {
+        char source[100];
+        memset(source, 'C', 100-1);
+        source[100-1] = '\0';
+        /* POTENTIAL FLAW: Possibly copying data to memory before the destination buffer */
+        strcpy(data, source);
+    }
+}
+✶
+./cwes/cwe124/output/generated/driver_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.c✶
+#include <klee/klee.h>
+
+extern void CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad(void);
+
+int __klee_source(void) {
+    int x;
+    klee_make_symbolic(&x, sizeof(x), "x");
+    return x;
+}
+
+int main(void) {
+    CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad();
+    return 0;
+}
+✶
+./cwes/cwe124/output/generated/build.sh✶
+#!/bin/bash
+set -e
+clang -emit-llvm -c driver_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.c -o driver_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.o
+clang -emit-llvm -c instrumented_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.c -o instrumented_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.o
+llvm-link driver_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.o instrumented_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.o -o final_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.bc
+clang -emit-llvm -c driver_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.c -o driver_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.o
+clang -emit-llvm -c instrumented_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.c -o instrumented_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.o
+llvm-link driver_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.o instrumented_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.o -o final_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.bc
+✶
+./cwes/cwe124/output/generated/run_klee.sh✶
+#!/bin/bash
+set -e
+klee --posix-runtime -libc=uclibc final_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.bc
+mv klee-last final_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad_klee
+klee --posix-runtime -libc=uclibc final_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.bc
+mv klee-last final_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad_klee
+✶

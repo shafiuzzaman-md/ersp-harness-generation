@@ -1,0 +1,158 @@
+./cwes/cwe124/output/generated/driver_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.c✶
+// driver_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.c
+#include "klee/klee.h"
+
+/* Provide the symbolic source used by the instrumented bad function */
+int __klee_source(void) {
+    int condition;
+    klee_make_symbolic(&condition, sizeof(condition), "condition");
+    return condition;
+}
+
+/* Pull in the instrumented implementation */
+#include "instrumented_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.c"
+
+/* Exact Juliet function name is preserved in the included file */
+int main(void) {
+    CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad();
+    return 0;
+}
+✶
+./cwes/cwe124/output/generated/instrumented_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.c✶
+// instrumented_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.c
+#include <stddef.h>
+#include <string.h>
+
+int __klee_source(void);  // defined by the driver
+
+void CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad(void) {
+    char * data;
+    char * dataBuffer = (char *)__builtin_alloca(100*sizeof(char));
+    memset(dataBuffer, 'A', 100-1);
+    dataBuffer[100-1] = '\0';
+    
+    int condition = __klee_source();     // model the conditional source
+    
+    if(condition) {
+        /* FLAW: Set data pointer to before the allocated memory buffer */
+        data = dataBuffer - 8;
+    } else {
+        /* This branch should not be taken in the bad case */
+        data = dataBuffer;
+    }
+    
+    {
+        char source[100];
+        memset(source, 'C', 100-1);
+        source[100-1] = '\0';
+        /* POTENTIAL FLAW: Possibly copying data to memory before the destination buffer */
+        strncpy(data, source, 100-1);
+        data[100-1] = '\0';
+    }
+}
+✶
+./cwes/cwe124/output/generated/driver_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.c✶
+// driver_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.c
+#include "klee/klee.h"
+
+/* Provide the symbolic source used by the instrumented bad function */
+int __klee_source(void) {
+    int condition;
+    klee_make_symbolic(&condition, sizeof(condition), "condition");
+    return condition;
+}
+
+/* Pull in the instrumented implementation */
+#include "instrumented_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.c"
+
+/* Exact Juliet function name is preserved in the included file */
+int main(void) {
+    CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad();
+    return 0;
+}
+✶
+./cwes/cwe124/output/generated/instrumented_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.c✶
+// instrumented_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.c
+#include <stddef.h>
+#include <string.h>
+
+int __klee_source(void);  // defined by the driver
+
+void CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad(void) {
+    char * data;
+    char * dataBuffer = (char *)__builtin_alloca(100*sizeof(char));
+    memset(dataBuffer, 'A', 100-1);
+    dataBuffer[100-1] = '\0';
+    
+    int condition = __klee_source();     // model the conditional source
+    
+    /* FLAW: Set data pointer to before the allocated memory buffer */
+    data = dataBuffer - 8;
+    
+    {
+        char source[100];
+        memset(source, 'C', 100-1);
+        source[100-1] = '\0';
+        /* POTENTIAL FLAW: Possibly copying data to memory before the destination buffer */
+        strcpy(data, source);
+    }
+}
+✶
+./cwes/cwe124/output/generated/build.sh✶
+#!/bin/bash
+set -e
+
+echo "Building instrumented files..."
+
+# Find KLEE include directory
+KLEE_INCLUDE=$(find /usr -name "klee.h" 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
+if [ -z "$KLEE_INCLUDE" ]; then
+    KLEE_INCLUDE=$(find /opt -name "klee.h" 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
+fi
+
+if [ -n "$KLEE_INCLUDE" ]; then
+    echo "Found KLEE includes at: $KLEE_INCLUDE"
+    INC_FLAG="-I$KLEE_INCLUDE"
+else
+    echo "Warning: KLEE includes not found, trying without specific include path"
+    INC_FLAG=""
+fi
+
+# Build CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad
+echo "Building CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad..."
+clang -emit-llvm -c -g -O0 $INC_FLAG \
+      driver_CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.c \
+      -o CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.bc
+
+# Build CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad  
+echo "Building CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad..."
+clang -emit-llvm -c -g -O0 $INC_FLAG \
+      driver_CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.c \
+      -o CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.bc
+
+echo "Build completed successfully"
+✶
+./cwes/cwe124/output/generated/run_klee.sh✶
+#!/bin/bash
+set -e
+
+echo "Running KLEE on instrumented files..."
+
+# Run KLEE on CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad
+echo "Running KLEE on CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.bc..."
+klee --enable-posix-runtime -libc=uclibc CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad.bc
+if [ -d "klee-last" ]; then
+    mv klee-last klee-out-CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad
+    echo "Renamed klee-last to klee-out-CWE124_Buffer_Underwrite__char_alloca_ncpy_03_bad"
+fi
+
+# Run KLEE on CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad
+echo "Running KLEE on CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.bc..."
+klee --enable-posix-runtime -libc=uclibc CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad.bc
+if [ -d "klee-last" ]; then
+    mv klee-last klee-out-CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad
+    echo "Renamed klee-last to klee-out-CWE124_Buffer_Underwrite__char_alloca_cpy_01_bad"
+fi
+
+echo "KLEE execution completed"
+✶

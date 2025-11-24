@@ -1,0 +1,109 @@
+Corrected Prompt Template (Use This)
+
+### 1. YOUR TASK (STRICT) For every .c file provided in the user message (e.g., source_A.c, source_B.c), you MUST generate two new C files:
+
+    An Instrumented File (e.g., instrumented_source_A.c):
+
+        This is a copy of the original C file.
+
+        Remove all I/O functions (e.g., printf, fgets).
+
+        Replace all input sources with calls to an external symbolic source function (e.g., extern int __klee_source();).
+
+        DO NOT include <klee/klee.h> in this file.
+
+    A Driver File (e.g., driver_source_A.c):
+
+        You MUST include <klee/klee.h>. (My Python script will remove this later).
+
+        This file defines the main() function.
+
+        It defines the __klee_source() function(s) using klee_make_symbolic.
+
+        It declares the instrumented function as extern (e.g., extern void CWE123_..._bad(void);).
+
+        It calls the instrumented function in main.
+
+You will also generate one build.sh and one run_klee.sh script.
+
+### 2. BUILD & KLEE INSTRUCTIONS (STRICT)
+
+    CWD Assumption: All scripts MUST assume they are run from inside their parent directory (e.g., ./cwes/cwe124/output/generated/).
+
+    build.sh:
+
+        Must begin with set -e.
+
+        For each pair of files, you must compile both C files into intermediate bitcode (.o) files.
+
+        Then, you MUST use llvm-link to link the pair of .o files into a single, final .bc file.
+
+        Example for one pair:
+        Bash
+
+        clang -emit-llvm -c driver_file1.c -o driver_file1.o
+        clang -emit-llvm -c instrumented_file1.c -o instrumented_file1.o
+        llvm-link driver_file1.o instrumented_file1.o -o final_file1.bc
+
+    run_klee.sh:
+
+        Must begin with set -e.
+
+        Must run KLEE on each final, linked .bc file (e.g., final_file1.bc).
+
+        KLEE Flags: Use the flags: --posix-runtime -libc=uclibc.
+
+        KLEE Output: After each KLEE run, rename klee-last (e.g., mv klee-last final_file1_klee).
+
+### 3. OUTPUT FORMAT (ABSOLUTELY STRICT)
+
+    DO NOT respond with any text, explanations, or titles.
+
+    Your entire response MUST start with a file path.
+
+    Your entire response MUST end with the ✶ delimiter.
+
+    Every file path MUST be followed by a ✶ delimiter.
+
+    Every file content block MUST be followed by a ✶ delimiter.
+
+    File Paths: All generated files MUST be placed in the directory ./cwes/cwexxx/output/generated/, where cwexxx is the lowercase CWE number (e.g., cwe124).
+
+EXAMPLE OF THE ONLY VALID RESPONSE FORMAT:
+
+./cwes/cwe124/output/generated/instrumented_file1.c✶
+// instrumented_file1.c
+// NO klee.h include here
+extern int __klee_source(void);
+extern void CWE123_..._bad(void);
+// ...
+✶
+./cwes/cwe124/output/generated/driver_file1.c✶
+// driver_file1.c
+#include <klee/klee.h> // Include is OK here
+// ...
+int __klee_source(void) {
+  int x;
+  klee_make_symbolic(&x, sizeof(x), "x");
+  return x;
+}
+int main(void) {
+  CWE123_..._bad();
+  return 0;
+}
+✶
+./cwes/cwe124/output/generated/build.sh✶
+#!/bin/bash
+set -e
+clang -emit-llvm -c driver_file1.c -o driver_file1.o
+clang -emit-llvm -c instrumented_file1.c -o instrumented_file1.o
+llvm-link driver_file1.o instrumented_file1.o -o final_file1.bc
+# (repeat for file2, file3, etc.)
+✶
+./cwes/cwe124/output/generated/run_klee.sh✶
+#!/bin/bash
+set -e
+klee --posix-runtime -libc=uclibc final_file1.bc
+mv klee-last final_file1_klee
+# (repeat for file2, file3, etc.)
+✶

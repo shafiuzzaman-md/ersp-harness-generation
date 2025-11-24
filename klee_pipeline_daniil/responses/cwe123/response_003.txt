@@ -1,0 +1,179 @@
+./cwes/cwe123/output/generated/instrumented_CWE123_Write_What_Where_Condition__fgets_03_bad.c
+/* TEMPLATE GENERATED TESTCASE FILE
+Filename: CWE123_Write_What_Where_Condition__fgets_03.c
+Label Definition File: CWE123_Write_What_Where_Condition.label.xml
+Template File: sources-sink-03.tmpl.c
+*/
+/*
+ * @description
+ * CWE: 123 Write-What-Where Condition
+ * BadSource: fgets Overwrite linked list pointers using fgets
+ * GoodSource: Don't overwrite linked list pointers
+ * Sink:
+ *    BadSink : Remove element from list
+ * Flow Variant: 03 Control flow: if(5==5) and if(5!=5)
+ *
+ * */
+
+#include "std_testcase.h"
+
+typedef struct _linkedList
+{
+    struct _linkedList *next;
+    struct _linkedList *prev;
+} linkedList;
+
+typedef struct _badStruct
+{
+    linkedList list;
+} badStruct;
+
+static linkedList *linkedListPrev, *linkedListNext;
+
+extern int __klee_source(void);
+
+void CWE123_Write_What_Where_Condition__fgets_03_bad()
+{
+    badStruct data;
+    linkedList head = { &head, &head };
+    /* This simulates a Microsoft-style linked list insertion */
+    data.list.next = head.next;
+    data.list.prev = head.prev;
+    head.next = &data.list;
+    head.prev = &data.list;
+    if(5==5)
+    {
+        /* FLAW: overwrite linked list pointers with user data */
+        int source_data = __klee_source();
+        /* Simulate overwriting the data structure with symbolic data */
+        memcpy((char*)&data, (char*)&source_data, sizeof(data));
+    }
+    /* POTENTIAL FLAW: The following removes 'a' from the list.  Because of the possible overflow this
+     * causes a "write-what-where" aka "write4".  It does another write as
+     * well.  But this is the prototypical "write-what-where" at least from
+     * the Windows perspective.
+     *
+     * linkedListPrev = a->list->prev  WHAT
+     * linkedListNext = a->list->next  WHERE
+     * linkedListPrev->next = linkedListNext  "at the address that prev/WHERE points, write
+     *                    next/WHAT"
+     *                    aka "write-what-where"
+     * linkedListNext->prev = linkedListPrev  "at the address that next/WHAT points plus 4
+     *                    (because prev is the second field in 'list' hence
+     *                    4 bytes away on 32b machines), write prev/WHERE"
+     */
+    linkedListPrev = data.list.prev;
+    linkedListNext = data.list.next;
+    linkedListPrev->next = linkedListNext;
+    linkedListNext->prev = linkedListPrev;
+}
+✶./cwes/cwe123/output/generated/driver_CWE123_Write_What_Where_Condition__fgets_03_bad.c
+#include "klee/klee.h"
+
+extern void CWE123_Write_What_Where_Condition__fgets_03_bad(void);
+
+int __klee_source(void) {
+    int data;
+    klee_make_symbolic(&data, sizeof(data), "data");
+    return data;
+}
+
+int main(void) {
+    CWE123_Write_What_Where_Condition__fgets_03_bad();
+    return 0;
+}
+✶./cwes/cwe123/output/generated/instrumented_CWE123_Write_What_Where_Condition__connect_socket_01_bad.c
+/* TEMPLATE GENERATED TESTCASE FILE
+Filename: CWE123_Write_What_Where_Condition__connect_socket_01.c
+Label Definition File: CWE123_Write_What_Where_Condition.label.xml
+Template File: sources-sink-01.tmpl.c
+*/
+/*
+ * @description
+ * CWE: 123 Write-What-Where Condition
+ * BadSource: connect_socket Overwrite linked list pointers using a connect socket (client side)
+ * GoodSource: Don't overwrite linked list pointers
+ * Sink:
+ *    BadSink : Remove element from list
+ * Flow Variant: 01 Baseline
+ *
+ * */
+
+#include "std_testcase.h"
+
+typedef struct _linkedList
+{
+    struct _linkedList *next;
+    struct _linkedList *prev;
+} linkedList;
+
+typedef struct _badStruct
+{
+    linkedList list;
+} badStruct;
+
+static linkedList *linkedListPrev, *linkedListNext;
+
+extern int __klee_source(void);
+
+void CWE123_Write_What_Where_Condition__connect_socket_01_bad()
+{
+    badStruct data;
+    linkedList head = { &head, &head };
+    /* This simulates a Microsoft-style linked list insertion */
+    data.list.next = head.next;
+    data.list.prev = head.prev;
+    head.next = &data.list;
+    head.prev = &data.list;
+    {
+        /* FLAW: overwrite linked list pointers with data */
+        int source_data = __klee_source();
+        /* Simulate overwriting the data structure with symbolic data */
+        memcpy((char*)&data, (char*)&source_data, sizeof(data));
+    }
+    /* POTENTIAL FLAW: The following removes 'a' from the list.  Because of the possible overflow this
+     * causes a "write-what-where" aka "write4".  It does another write as
+     * well.  But this is the prototypical "write-what-where" at least from
+     * the Windows perspective.
+     *
+     * linkedListPrev = a->list->prev  WHAT
+     * linkedListNext = a->list->next  WHERE
+     * linkedListPrev->next = linkedListNext  "at the address that prev/WHERE points, write
+     *                    next/WHAT"
+     *                    aka "write-what-where"
+     * linkedListNext->prev = linkedListPrev  "at the address that next/WHAT points plus 4
+     *                    (because prev is the second field in 'list' hence
+     *                    4 bytes away on 32b machines), write prev/WHERE"
+     */
+    linkedListPrev = data.list.prev;
+    linkedListNext = data.list.next;
+    linkedListPrev->next = linkedListNext;
+    linkedListNext->prev = linkedListPrev;
+}
+✶./cwes/cwe123/output/generated/driver_CWE123_Write_What_Where_Condition__connect_socket_01_bad.c
+#include "klee/klee.h"
+
+extern void CWE123_Write_What_Where_Condition__connect_socket_01_bad(void);
+
+int __klee_source(void) {
+    int data;
+    klee_make_symbolic(&data, sizeof(data), "data");
+    return data;
+}
+
+int main(void) {
+    CWE123_Write_What_Where_Condition__connect_socket_01_bad();
+    return 0;
+}
+✶./cwes/cwe123/output/generated/build.sh
+set -e
+clang -emit-llvm -c driver_CWE123_Write_What_Where_Condition__fgets_03_bad.c -o driver_CWE123_Write_What_Where_Condition__fgets_03_bad.bc
+clang -emit-llvm -c instrumented_CWE123_Write_What_Where_Condition__fgets_03_bad.c -o instrumented_CWE123_Write_What_Where_Condition__fgets_03_bad.bc
+clang -emit-llvm -c driver_CWE123_Write_What_Where_Condition__connect_socket_01_bad.c -o driver_CWE123_Write_What_Where_Condition__connect_socket_01_bad.bc
+clang -emit-llvm -c instrumented_CWE123_Write_What_Where_Condition__connect_socket_01_bad.c -o instrumented_CWE123_Write_What_Where_Condition__connect_socket_01_bad.bc
+✶./cwes/cwe123/output/generated/run_klee.sh
+set -e
+klee --posix-runtime -libc=uclibc driver_CWE123_Write_What_Where_Condition__fgets_03_bad.bc instrumented_CWE123_Write_What_Where_Condition__fgets_03_bad.bc
+mv klee-last driver_CWE123_Write_What_Where_Condition__fgets_03_bad_klee
+klee --posix-runtime -libc=uclibc driver_CWE123_Write_What_Where_Condition__connect_socket_01_bad.bc instrumented_CWE123_Write_What_Where_Condition__connect_socket_01_bad.bc
+mv klee-last driver_CWE123_Write_What_Where_Condition__connect_socket_01_bad_klee
