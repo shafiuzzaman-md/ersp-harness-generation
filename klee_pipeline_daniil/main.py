@@ -6,23 +6,35 @@ import subprocess
 import time
 from openai import OpenAI
 
+"""
+Initialization:
+Reads the input as well as an optional api call limits, and then load api key.
+"""
 
-context = sys.argv[1]
+
+config_path = ""
 global maxcalls
-maxcalls = int(sys.argv[2])
+maxcalls = 3
 global total_calls
 total_calls = 0
+
 try:
     config_path = sys.argv[1]
 except IndexError:
     print("Error: Missing config file path argument.")
-    print("USAGE: python3 main.py <path_to_config.json> <api_call_limit>")
+    print("USAGE: python3 main.py <path_to_config.json> <OPTIONAL: api_call_limit>")
     sys.exit(1)
 
 try:
-    # This block opens the file, reads its content, and parses it
+    newmaxcalls =  int(sys.argv[2])
+    maxcalls = newmaxcalls
+except:
+    print("Using default max calls of ", maxcalls)
+    pass
+
+try:
     with open(config_path, 'r') as f:
-        context = json.load(f)  # Use json.load() for file objects
+        context = json.load(f)  
 except FileNotFoundError:
     print(f"Error: Config file not found at {config_path}")
     sys.exit(1)
@@ -58,49 +70,54 @@ def sanitize(filecontent):
     clean_lines = []
     
     for line in contentlines:
-        # 1. Remove markdown backticks
         if '`' in line:
-            continue # Skip the line entirely
+            continue 
         
-        # 2. THIS IS THE FIX: Skip the klee.h include
         if '#include <klee/klee.h>' in line:
-            continue # Skip this line
+            continue 
             
         clean_lines.append(line)
 
     return '\n'.join(clean_lines)
 
+"""
+    Args:
+        reponse_content (str): The llm's response.
+
+    Returns:
+        str: The AI's response that has been cleaned.
+"""
+
 def clean_llm_response(response_content):
-    """
-    Cleans conversational prefixes and suffixes from the LLM response.
-    It finds the first real file path and the last '✶' delimiter.
-    """
-    
-    # 1. Find the start of the *actual* data.
-    #    The best anchor is your file path structure.
+
     start_index = response_content.find("./cwes/")
     
     if start_index == -1:
-        # If no file path is found, the response is invalid.
         print("Cleaning Warning: Could not find start anchor './cwes/' in response.")
-        return "" # Return empty string
+        return "" 
 
-    # 2. Find the end of the *actual* data.
-    #    This is the *last* delimiter in the response.
     end_index = response_content.rfind("✶")
     
     if end_index == -1:
         print("Cleaning Warning: Could not find end anchor '✶' in response.")
-        return "" # Return empty string
+        return "" 
 
-    # 3. Ensure the end is after the start
     if end_index < start_index:
         print("Cleaning Warning: Anchors found in wrong order.")
         return ""
 
-    # 4. Return the clean block of data
     return response_content[start_index : end_index + 1]
         
+"""
+    Args:
+        cwe (str): cwe's name.
+        llmresponse (str): sanitized llm response.
+
+    Returns:
+        bool: The status of the implementation, whether it is successful or not.
+        str: A description of the error along with error code.
+"""
+
 
 def implement_response(cwe, llmresponse):
     try:
@@ -108,8 +125,6 @@ def implement_response(cwe, llmresponse):
         i = 0
         while i < len(commands):
             filepath = commands[i].strip()
-            #if context['container'] not in filepath: Ignoring for now..
-                #raise ValueError(f"You tried to use a path outside of the designated container! {context['container']}")
             i += 1
 
             if filepath == "":
@@ -153,9 +168,16 @@ def implement_response(cwe, llmresponse):
     return True, "Success"
 
     
+"""
+    Args:
+        cwe (str): cwe's name.
+        content (str): the content of the directory that is being sent to the llm.
 
+    Returns:
+      
+"""
 
-def symbolically_execute(cwe, contents):
+def llm_loop(cwe, contents):
     global maxcalls
     global total_calls
     first_message = ""
@@ -172,11 +194,9 @@ def symbolically_execute(cwe, contents):
     success = False
     response = ""
 
-    # --- EDIT: Create directories for saving responses ---
     cwe_response_dir = os.path.join("./responses", cwe)
     os.makedirs(cwe_response_dir, exist_ok=True)
     call_attempt = 0
-    # --- End of Edit ---
 
     while not success:
         if total_calls >= maxcalls:
@@ -198,26 +218,22 @@ def symbolically_execute(cwe, contents):
         )
         
 
-        # --- 1. ADDED: Save the prompt to a JSON file ---
-        prompt_filename = f"prompt_{call_attempt:03d}.json" # e.g., prompt_001.json
+        prompt_filename = f"prompt_{call_attempt:03d}.json" 
         save_path_prompt = os.path.join(cwe_response_dir, prompt_filename)
         
         try:
             with open(save_path_prompt, 'w', encoding='utf-8') as f:
-                # indent=4 creates the "nice" format with newlines
                 json.dump(inputHistory, f, indent=4) 
             print(f"Saved LLM prompt to {save_path_prompt}")
         except Exception as e:
             print(f"Warning: Failed to save LLM prompt to {save_path_prompt}. Error: {e}")
-        # --- End of Addition ---
 
         ai_response_message = completion.choices[0].message
-        ai_content = ai_response_message.content or "" # Ensure content is not None
+        ai_content = ai_response_message.content or "" 
 
 
-        # --- EDIT: Save the LLM response to a file ---
         call_attempt += 1
-        response_filename = f"response_{call_attempt:03d}.txt" # e.g., response_001.txt
+        response_filename = f"response_{call_attempt:03d}.txt" 
         save_path = os.path.join(cwe_response_dir, response_filename)
         
         
@@ -227,7 +243,7 @@ def symbolically_execute(cwe, contents):
             print(f"Saved LLM response to {save_path}")
         except Exception as e:
             print(f"Warning: Failed to save LLM response to {save_path}. Error: {e}")
-        # --- End of Edit ---
+
         history.append({
             "role": ai_response_message.role,
             "content": ai_content
@@ -242,42 +258,42 @@ def symbolically_execute(cwe, contents):
         total_calls += 1
         time.sleep(15)
 
+"""
+    Args:
+        target_path (str): Path to read from.
+
+    Returns:
+        (str): The content of the directory that is being read from. 
+"""
 
 def read_directory(target_path):
     content = ""
     
     for root, dirs, files in os.walk(target_path):
         for filename in files:
-            # Construct the full, absolute path
             file_path = os.path.abspath(os.path.join(root, filename))
             if not file_path.endswith(".h") and not file_path.endswith(".cpp")  and not file_path.endswith(".md")  and not file_path.endswith(".c")  and not file_path.endswith(".h")  :
                 continue
             if "output/generated" in file_path:
                 continue
             try:
-                # Open and read the file
                 with open(file_path, 'r', encoding='utf-8') as fp:
                     file_content = fp.read()
                     
-                    # Print path and content (as in your original function)
                     print(file_path)
                     print(file_content)
                     
-                    # Add to the master content string
                     content += file_path + "\n"
-                    content += file_content + "\n\n" # Added an extra newline for readability
+                    content += file_content + "\n\n" 
                     
             except Exception as e:
-                # Handle files that can't be read (e.g., binary files, permissions)
                 print(f"Warning: Could not read file {file_path}. Error: {e}")
-                pass # Skip this file and continue
+                pass 
 
     return content
 
 def main():
-    # --- EDIT: Ensure the main responses directory exists ---
     os.makedirs("./responses", exist_ok=True)
-    # --- End of Edit ---
     
     cwes_to_handle = {}
     with os.scandir("./cwes") as items:
@@ -285,7 +301,7 @@ def main():
             cwes_to_handle[item.name] = read_directory(item.path)
         
     for cwe in cwes_to_handle.keys():
-        symbolically_execute(cwe, cwes_to_handle[cwe])
+        llm_loop(cwe, cwes_to_handle[cwe])
         print(f"CWE {cwe} has been completed! Waiting 30s...")
         time.sleep(30)
     
