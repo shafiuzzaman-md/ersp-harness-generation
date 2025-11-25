@@ -1,0 +1,57 @@
+[
+{
+"name": "UseAfterFree",
+"source": "void example_uaf() {\n    int *p = (int *)malloc(sizeof(int));\n    if (!p) return;\n    *p = 10;\n    free(p);\n    int x = *p; // use-after-free\n    printf(\"%d\\n\", x);\n}",
+"driver": "#include <stdio.h>\nvoid example_uaf();\nint main() {\n    example_uaf();\n    return 0;\n}",
+"instrumentation": "void example_uaf() {\n    int *p = (int *)malloc(sizeof(int));\n    if (!p) return;\n    *p = 10;\n    free(p);\n    /* Instrumentation: diagnostic for using freed pointer */\n    printf(\"[INST] Attempting to dereference freed pointer p\\n\");\n    int x = *p;\n    printf(\"%d\\n\", x);\n}"
+},
+
+{
+"name": "DoubleFree",
+"source": "void example_double_free() {\n    int *p = (int *)malloc(sizeof(int));\n    if (!p) return;\n    *p = 5;\n    free(p);\n    free(p); // double free\n}",
+"driver": "#include <stdio.h>\nvoid example_double_free();\nint main() {\n    example_double_free();\n    return 0;\n}",
+"instrumentation": "void example_double_free() {\n    int *p = (int *)malloc(sizeof(int));\n    if (!p) return;\n    *p = 5;\n    free(p);\n    /* Instrumentation: diagnostic for double free */\n    printf(\"[INST] Pointer p freed again (double free)\\n\");\n    free(p);\n}"
+},
+
+{
+"name": "UninitializedVariableUsage",
+"source": "void example_uninit() {\n    int x;\n    int y = x + 3; // uninitialized variable usage\n    printf(\"%d\\n\", y);\n}",
+"driver": "#include <stdio.h>\nvoid example_uninit();\nint main() {\n    example_uninit();\n    return 0;\n}",
+"instrumentation": "void example_uninit() {\n    int x;\n    /* Instrumentation: diagnostic for reading uninitialized variable x */\n    printf(\"[INST] Reading uninitialized variable x\\n\");\n    int y = x + 3;\n    printf(\"%d\\n\", y);\n}"
+},
+
+{
+"name": "OffByOne",
+"source": "void example_oob() {\n    int arr[5];\n    for (int i = 0; i <= 5; i++) { // off-by-one (i = 5 out of bounds)\n        arr[i] = i;\n    }\n}",
+"driver": "#include <stdio.h>\nvoid example_oob();\nint main() {\n    example_oob();\n    return 0;\n}",
+"instrumentation": "void example_oob() {\n    int arr[5];\n    for (int i = 0; i <= 5; i++) {\n        if (i == 5) {\n            /* Instrumentation: diagnostic for out-of-bounds write */\n            printf(\"[INST] Index 5 out of bounds for arr\\n\");\n        }\n        arr[i] = i;\n    }\n}"
+},
+
+{
+"name": "IntegerUnderflow",
+"source": "void example_underflow() {\n    unsigned int x = 0;\n    unsigned int y = x - 1; // underflow\n    printf(\"%u\\n\", y);\n}",
+"driver": "#include <stdio.h>\nvoid example_underflow();\nint main() {\n    example_underflow();\n    return 0;\n}",
+"instrumentation": "void example_underflow() {\n    unsigned int x = 0;\n    /* Instrumentation: diagnostic for underflow */\n    if (x == 0) {\n        printf(\"[INST] Underflow: subtracting from 0\\n\");\n    }\n    unsigned int y = x - 1;\n    printf(\"%u\\n\", y);\n}"
+},
+
+{
+"name": "NullPointerDereference",
+"source": "void example_null_deref() {\n    int *p = NULL;\n    int x = *p; // null dereference\n    printf(\"%d\\n\", x);\n}",
+"driver": "#include <stdio.h>\nvoid example_null_deref();\nint main() {\n    example_null_deref();\n    return 0;\n}",
+"instrumentation": "void example_null_deref() {\n    int *p = NULL;\n    /* Instrumentation: diagnostic for null pointer dereference */\n    if (p == NULL) {\n        printf(\"[INST] Dereferencing NULL pointer p\\n\");\n    }\n    int x = *p;\n    printf(\"%d\\n\", x);\n}"
+},
+
+{
+"name": "ArrayIndexNegative",
+"source": "void example_array_index_negative() {\n    int data = -3;\n    int buffer[10] = {0};\n    if (data < 10) {\n        buffer[data] = 1; // negative index → OOB\n    }\n}",
+"driver": "#include \"klee/klee.h\"\nint __klee_source(void) {\n    int data;\n    klee_make_symbolic(&data, sizeof(data), \"data\");\n    return data;\n}\n#include \"instrumented_array_index_negative.c\"\nint main(void) {\n    example_array_index_negative();\n    return 0;\n}",
+"instrumentation": "int __klee_source(void);\nvoid example_array_index_negative(void) {\n    int data = __klee_source();\n    int buffer[10] = {0};\n    /* Vulnerable: checks only upper bound */\n    if (data < 10) {\n        buffer[data] = 1;\n    }\n}"
+},
+
+{
+"name": "HeapBufferOverflow",
+"source": "void example_heap_oob() {\n    int *buf = malloc(50 * sizeof(int));\n    buf[60] = 1; // OOB write\n    free(buf);\n}",
+"driver": "#include \"klee/klee.h\"\nint __klee_source(void) {\n    int idx;\n    klee_make_symbolic(&idx, sizeof(idx), \"idx\");\n    return idx;\n}\n#include \"instrumented_heap_oob.c\"\nint main(void) {\n    example_heap_oob();\n    return 0;\n}",
+"instrumentation": "#include <stdlib.h>\nint __klee_source(void);\nvoid example_heap_oob(void) {\n    int idx = __klee_source();\n    int *buf = malloc(50 * sizeof(int));\n    /* Vulnerability: symbolic index with no bounds check */\n    buf[idx] = 1;\n    free(buf);\n}"
+}
+]
