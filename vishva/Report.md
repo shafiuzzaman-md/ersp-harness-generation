@@ -34,13 +34,14 @@ The V1 query was pretty noisy because it treated every function parameter as a p
 2. Sink should only be memcpy length. I only care if the size is tainted, because that is what causes the overflow.
 3. Sanitizer: I added a check for min(). If data passes through this, do not flag it as a vulnerability.
 
-##Results:
+## Results:
 
 v1 and v2 had findings of length 0! At first, getting 0 results for both queries seemed wrong, but after manually looking at the source code, I realized this is actually the correct behavior. The code uses sizeof which is a
 a compile-time constant. It isn't a variable, it isn't a parameter, and it certainly doesn't come from argv.
 
 ## Conclusion:
 Because the bad length is hardcoded by the compiler, there is no data flow for my query to track. The Taint Tracking query correctly ignored it because no user input ever touches that length argument. 
+
 
 
 
