@@ -2,7 +2,7 @@
 
 The CMakeLists.txt is at the root level, not in individual CWE directories, so I made a simple build script.
 
-# Build script:
+### Build script:
 cd ~/ersp-harness-generation/mahima-codeQL 
 
 cat > build.sh << 'EOF' 
@@ -15,33 +15,33 @@ EOF
 
 chmod +x build.sh
 
-## Create CWE 415 db:
+### Create CWE 415 db:
 codeql database create db-juliet-cwe415 \ 
 --language=cpp \ 
 --command="./build.sh" \ --source-root=$HOME/mahima-codeql-wk1/juliet-test-suite-c/testcases/CWE415_Double_Free/s01 \ 
 --overwrite
 
-# Sanity check:
+### Sanity check:
 codeql database analyze db-juliet-cwe415 codeql/cpp-queries \ 
 --format=sarif-latest --output=baseline.sarif
 
-# Create custom CodeQL pack:
+### Create custom CodeQL pack:
 mkdir -p codeql-custom/queries
 touch codeql-custom/qlpack.yml 
 touch codeql-custom/README.md 
 touch codeql-custom/queries/ersp-oob-memcpy-length.ql
 
-# qlpack.yml
+### qlpack.yml
 cat > codeql-custom/qlpack.yml << 'EOF' 
 name: ersp/custom-cpp-queries 
 version: 0.0.1 
 dependencies: codeql/cpp-all: "*" 
 EOF
 
-# Custom Query v1:
+### Custom Query v1:
 CWE-415 (Double Free) isn't about memcpy so I changed the query to detect double-free.
 
-# Run the query:
+### Run the query:
 codeql pack install 
 
 codeql database analyze ../db-juliet-cwe415 \ 
@@ -49,10 +49,10 @@ queries/ersp-oob-memcpy-length.ql \
 --format=sarif-latest \ 
 --output=../v1.sarif
 
-# Revised Query v2:
+### Revised Query v2:
 Refinements: filters out NULL-checked pointers, ignores different control flow branches.
 
-# Run the Query:
+### Run the Query:
 codeql database analyze ../db-juliet-cwe415 \ 
 queries/ersp-double-free-v2.ql \ 
 --format=sarif-latest \ 
@@ -109,7 +109,7 @@ for i, finding in enumerate(list(kept)[:3]):
     print(f"{i+1}. {finding}")
 EOF
 
-# Results:
+### Results:
 ======================================================================
 REFINEMENT SUMMARY
 ======================================================================
