@@ -110,23 +110,23 @@ for i, finding in enumerate(list(kept)[:3]):
 EOF
 
 ### Results:
-### ======================================================================
-### REFINEMENT SUMMARY
-### ======================================================================
+##### ======================================================================
+##### REFINEMENT SUMMARY
+##### ======================================================================
 
 v1 findings: 1080
 v2 findings: 108
 Reduction: 972 findings removed
 Percentage: 90.0% reduction
 
-### Example findings REMOVED in v2 (false positives filtered):
-### ======================================================================
+##### Example findings REMOVED in v2 (false positives filtered):
+##### ======================================================================
 1. CWE415_Double_Free__malloc_free_wchar_t_63b.c:28
 2. CWE415_Double_Free__malloc_free_int64_t_66a.c:74
 3. CWE415_Double_Free__malloc_free_int_06.c:39
 
-### Example findings KEPT in v2 (true positives):
-### ======================================================================
+##### Example findings KEPT in v2 (true positives):
+##### ======================================================================
 1. CWE415_Double_Free__malloc_free_long_10.c:39
 2. CWE415_Double_Free__malloc_free_struct_05.c:4
 
