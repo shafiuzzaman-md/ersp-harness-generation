@@ -1,18 +1,20 @@
 # CodeQL Assignment - Sahasra
 
 ## Target Selection
-Initially, I worked with CWE 126, which I had worked with in previous tasks. 
+I worked with CWE 126, which I had worked with in previous tasks. 
 
 ## Baseline
 
 Make Based Build:
-```codeql database create db-CWE126 \
+```
+codeql database create db-CWE126 \
   --language=cpp \
   --command="make all"
 ```
 
 Analyzing database to create baseline.sarif:
-```codeql database analyze db-CWE126 codeql/cpp-queries \
+```
+codeql database analyze db-CWE126 codeql/cpp-queries \
   --format=sarif-latest --output=baseline.sarif
 ```
 
