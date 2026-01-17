@@ -32,5 +32,10 @@ void CWE415_bad() {
     free(data);  // Double-free vulnerability
 }
 ```
+## Limitations & Next Steps
+
+1. Query tracks exact variable names; doesn't catch aliased pointers (e.g., `ptr2 = ptr1; free(ptr1); free(ptr2);`)
+2. Limited to single-function scope; misses double-frees across function boundaries
+3. Simplified branch detection may miss some safe patterns in nested conditionals
 
 
