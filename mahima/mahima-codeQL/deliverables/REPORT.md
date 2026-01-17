@@ -3,10 +3,6 @@
 ## Rule Intent
 This query detects CWE-415 (Double Free) vulnerabilities where dynamically allocated memory is freed multiple times without reallocation. The pattern identifies variables that flow from a `free()` call to another `free()` call on the same pointer, which can lead to memory corruption, crashes, or potential security exploits.
 
-## CWE Mapping
-- **Primary:** CWE-415 (Double Free)
-- **Related:** CWE-825 (Expired Pointer Dereference), CWE-416 (Use After Free)
-
 ## Design Decisions
 
 ### Source
