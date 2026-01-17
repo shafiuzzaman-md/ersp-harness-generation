@@ -15,7 +15,7 @@ EOF
 
 chmod +x build.sh
 
-# Create CWE 415 db:
+## Create CWE 415 db:
 codeql database create db-juliet-cwe415 \ 
 --language=cpp \ 
 --command="./build.sh" \ --source-root=$HOME/mahima-codeql-wk1/juliet-test-suite-c/testcases/CWE415_Double_Free/s01 \ 
