@@ -29,4 +29,3 @@ where
 select
   c,
   "memcpy length argument may be influenced by function input."
-
